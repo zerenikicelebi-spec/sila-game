@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sıla Mikroba Karşı — Scoreboard v10</title>
+<style>
+  :root{--bg:#0f1020;--panel:rgba(18,23,42,.92);--text:#f7f7ff;--muted:#b7b8d4;--yellow:#ffd54a;}
+  *{box-sizing:border-box} body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+    font-family:'Trebuchet MS','Segoe UI',Arial,sans-serif;color:var(--text);
+    background:radial-gradient(circle at top,#25265a 0%,#151733 36%,#0d0f1e 100%);}
+  .screen{width:min(900px,100%);background:var(--panel);border:3px solid rgba(255,255,255,.14);border-radius:24px;padding:24px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .title{margin:0 0 8px;font-size:clamp(30px,5vw,56px)} .subtitle{margin:0 0 18px;color:var(--muted)}
+  .card{background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.12);border-radius:18px;padding:16px}
+  .list{display:grid;gap:10px}.row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .btn{display:inline-block;margin-top:16px;padding:12px 18px;border-radius:14px;background:linear-gradient(180deg,#ffd85d,#ffb836);color:#101322;font-weight:800;text-decoration:none}
+  .pill{display:inline-flex;align-items:center;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+  <div class="screen">
+    <h1 class="title">Scoreboard</h1>
+    <p class="subtitle">Kaydedilmiş nickname ve son skor bilgilerin burada görünür. 1. sıra her zaman sila — ∞.</p>
+    <div class="list" id="board"></div>
+    <a class="btn" href="index.html">Oyuna Dön</a>
+  </div>
+<script>
+  const board = document.getElementById('board');
+  let data = null;
+  let history = [];
+  try { data = JSON.parse(localStorage.getItem('smk_last_score') || 'null'); } catch(e) {}
+  try { history = JSON.parse(localStorage.getItem('smk_score_history') || '[]'); } catch(e) {}
+  history.sort((a, b) => (b.finalScore || 0) - (a.finalScore || 0) || (a.updatedAt || 0) - (b.updatedAt || 0));
+  history = history.slice(0, 12);
+
+  const rows = history.map((row, i) => `
+    <div class="card"><div class="row"><b>${i + 2}. ${row.nickname}</b><b>${row.finalScore}</b></div></div>
+  `).join('');
+
+  if (!data && !history.length) {
+    board.innerHTML = `
+      <div class="card">Henüz kayıtlı skor yok. Önce oyunu oynayıp scoreboard aşamasına gel.</div>
+      <div class="card"><div class="row"><b>🥇 sila</b><b>∞</b></div></div>
+    `;
+  } else {
+    const when = data ? new Date(data.updatedAt || Date.now()).toLocaleString('tr-TR') : '-';
+    board.innerHTML = `
+      <div class="card"><div class="row"><b>🥇 sila</b><b>∞</b></div></div>
+      ${rows || '<div class="card">Henüz kayıtlı başka skor yok.</div>'}
+      ${data ? `
+      <div class="card"><div class="row"><span>Son skor</span><b>${data.finalScore}</b></div></div>
+      <div class="card"><div class="row"><span>Son oyuncu</span><b>${data.nickname}</b></div></div>
+      <div class="card"><div class="row"><span>Serum</span><b>${data.serumCount} × 10</b></div></div>
+      <div class="card"><div class="row"><span>Mikroskop</span><b>${data.microscopeCount} × 11</b></div></div>
+      <div class="card"><div class="row"><span>En iyi combo</span><b>x${data.bestCombo}</b></div></div>
+      <div class="card"><div class="row"><span>Süre bonusu</span><b>+${data.timeBonus}</b></div></div>
+      <div class="pill">Son güncelleme: ${when}</div>` : ''}
+    `;
+  }
+</script>
+</body>
+</html>
